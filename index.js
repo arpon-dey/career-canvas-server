@@ -24,6 +24,7 @@ async function run() {
     await client.connect();
 
     const jobCollection = client.db("jobsDB").collection("jobs");
+    const bidsCollection = client.db("jobsDB").collection("myBids");
 
     // app.get('/jobs', async (req, res) => {
     //     const result = await jobCollection.find().toArray();
@@ -39,7 +40,20 @@ async function run() {
       const result = await jobCollection.find(query).toArray();
       res.send(result);
     });
-    app.get("/jobs/:id", async(req, res) => {
+
+
+    app.get("/myBids", async (req, res) => {
+      const email = req.query.email;
+      let query = {};
+      if (email) {
+        query = { email: email };
+      }
+      const result = await bidsCollection.find(query).toArray();
+      res.send(result);
+    });
+
+    
+    app.get("/jobs/:id", async (req, res) => {
       const id = req.params.id;
       const query = { _id: new ObjectId(id) };
       const result = await jobCollection.findOne(query);
@@ -49,6 +63,12 @@ async function run() {
     app.post("/jobs", async (req, res) => {
       const job = req.body;
       const result = await jobCollection.insertOne(job);
+      res.send(result);
+    });
+
+    app.post("/myBids", async (req, res) => {
+      const myBidJob = req.body;
+      const result = await bidsCollection.insertOne(myBidJob);
       res.send(result);
     });
 
