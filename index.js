@@ -83,7 +83,25 @@ async function run() {
       res.send(result);
     });
 
+    app.get("/myBids/reject/:id", async (req, res) => {
+        const id = req.params.id;
+        const query = { _id: new ObjectId(id) };
+        const result = await bidsCollection.findOne(query);
+        res.send(result);
+    });
 
+
+
+
+    app.put("/myBids/reject/:id", async (req, res) => {
+        const id = req.params.id;
+        const query = { _id: new ObjectId(id) };
+        const updatedJob = {
+            $set: { status: "Rejected" },
+        };
+        const result = await bidsCollection.updateOne(query, updatedJob);
+        res.send(result);
+    });
 
 
     app.put('/jobs/update/:id', async (req, res) => {
@@ -103,6 +121,15 @@ async function run() {
         }
 
         const result = await jobCollection.updateOne(filter, job, options);
+        res.send(result);
+    })
+
+
+
+    app.delete('/jobs/:id', async (req, res) => {
+        const id = req.params.id;
+        const query = { _id: new ObjectId(id) }
+        const result = await jobCollection.deleteOne(query);
         res.send(result);
     })
 
