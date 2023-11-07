@@ -52,13 +52,24 @@ async function run() {
       res.send(result);
     });
 
-    
+
     app.get("/jobs/:id", async (req, res) => {
       const id = req.params.id;
       const query = { _id: new ObjectId(id) };
       const result = await jobCollection.findOne(query);
       res.send(result);
     });
+
+
+
+    app.get('/jobs/update/:id', async (req, res) => {
+        const id = req.params.id
+        const query = { _id: new ObjectId(id) };
+        const result = await jobCollection.findOne(query)
+        res.send(result);
+    });
+
+
 
     app.post("/jobs", async (req, res) => {
       const job = req.body;
@@ -71,6 +82,31 @@ async function run() {
       const result = await bidsCollection.insertOne(myBidJob);
       res.send(result);
     });
+
+
+
+
+    app.put('/jobs/update/:id', async (req, res) => {
+        const id = req.params.id;
+        const filter = { _id: new ObjectId(id) }
+        const options = { upsert: true };
+        const updatedJob = req.body;
+
+        const job = {
+            $set: {
+                jobTitle: updatedJob.jobTitle,
+                deadline: updatedJob.deadline,
+                maxPrice: updatedJob.maxPrice,
+                minPrice: updatedJob.minPrice,
+                description: updatedJob.description
+            }
+        }
+
+        const result = await jobCollection.updateOne(filter, job, options);
+        res.send(result);
+    })
+
+
 
     await client.db("admin").command({ ping: 1 });
     console.log(
