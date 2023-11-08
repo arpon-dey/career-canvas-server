@@ -136,6 +136,28 @@ async function run() {
             res.status(500).send({ success: false, message: "Internal server error." });
         }
     });
+
+
+    app.put('/myBids/complete/:id', async (req, res) => {
+        const id = req.params.id;
+        const { status } = req.body;
+    
+        // Construct the query to find the bid by its _id
+        const query = { _id: new ObjectId(id) };
+    
+        try {
+            const result = await bidsCollection.updateOne(query, { $set: { status : 'completed' } });
+    
+            if (result.matchedCount === 1) {
+                res.status(200).json({ success: true, message: 'Status updated to Completed.' });
+            } else {
+                res.status(404).json({ success: false, message: 'Bid not found.' });
+            }
+        } catch (error) {
+            console.error('Database update error:', error);
+            res.status(500).json({ success: false, message: 'Failed to update status.' });
+        }
+    });
     
 
 
