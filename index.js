@@ -53,6 +53,17 @@ async function run() {
     });
 
 
+
+
+
+
+   
+
+
+
+
+
+
     app.get("/jobs/:id", async (req, res) => {
       const id = req.params.id;
       const query = { _id: new ObjectId(id) };
@@ -102,6 +113,32 @@ async function run() {
         const result = await bidsCollection.updateOne(query, updatedJob);
         res.send(result);
     });
+
+
+
+
+    app.put("/myBids/accept/:id", async (req, res) => {
+        const id = req.params.id;
+        const query = { _id: new ObjectId(id) };
+        const updatedJob = {
+            $set: { status: "In progress" },
+        };
+    
+        try {
+            const result = await bidsCollection.updateOne(query, updatedJob);
+    
+            if (result.matchedCount === 1) {
+                res.send({ success: true, message: "Job accepted." });
+            } else {
+                res.status(404).send({ success: false, message: "Job not found or already accepted." });
+            }
+        } catch (error) {
+            res.status(500).send({ success: false, message: "Internal server error." });
+        }
+    });
+    
+
+
     // app.get("/myBids/accept/:id", async (req, res) => {
     //     const id = req.params.id;
     //     const query = { _id: new ObjectId(id) };
