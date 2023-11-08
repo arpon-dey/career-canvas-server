@@ -1,8 +1,8 @@
 const express = require("express");
 const app = express();
-const port = process.env.PORT || 5000;
-const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 const cors = require("cors");
+const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
+const port = process.env.PORT || 5000;
 require("dotenv").config();
 
 app.use(express.json());
@@ -21,16 +21,16 @@ const client = new MongoClient(uri, {
 
 async function run() {
   try {
-    await client.connect();
+    // await client.connect();
 
     const jobCollection = client.db("jobsDB").collection("jobs");
     const bidsCollection = client.db("jobsDB").collection("myBids");
 
-    // app.get('/jobs', async (req, res) => {
-    //     const result = await jobCollection.find().toArray();
-    //     res.send(result);
-    //   });
 
+
+    // token related api
+   
+    // JOb/Product related api
     app.get("/jobs", async (req, res) => {
       const email = req.query.email;
       let query = {};
@@ -52,26 +52,12 @@ async function run() {
       res.send(result);
     });
 
-
-
-
-
-
-   
-
-
-
-
-
-
     app.get("/jobs/:id", async (req, res) => {
       const id = req.params.id;
       const query = { _id: new ObjectId(id) };
       const result = await jobCollection.findOne(query);
       res.send(result);
     });
-
-
 
     app.get('/jobs/update/:id', async (req, res) => {
         const id = req.params.id
@@ -80,7 +66,12 @@ async function run() {
         res.send(result);
     });
 
-
+    app.get("/myBids/reject/:id", async (req, res) => {
+        const id = req.params.id;
+        const query = { _id: new ObjectId(id) };
+        const result = await bidsCollection.findOne(query);
+        res.send(result);
+    });
 
     app.post("/jobs", async (req, res) => {
       const job = req.body;
@@ -94,15 +85,26 @@ async function run() {
       res.send(result);
     });
 
-    app.get("/myBids/reject/:id", async (req, res) => {
+    app.put('/jobs/update/:id', async (req, res) => {
         const id = req.params.id;
-        const query = { _id: new ObjectId(id) };
-        const result = await bidsCollection.findOne(query);
+        const filter = { _id: new ObjectId(id) }
+        const options = { upsert: true };
+        const updatedJob = req.body;
+
+        const job = {
+            $set: {
+                jobTitle: updatedJob.jobTitle,
+                deadline: updatedJob.deadline,
+                maxPrice: updatedJob.maxPrice,
+                minPrice: updatedJob.minPrice,
+                description: updatedJob.description
+            }
+        }
+        const result = await jobCollection.updateOne(filter, job, options);
         res.send(result);
-    });
+    })
 
-
-
+    
 
     app.put("/myBids/reject/:id", async (req, res) => {
         const id = req.params.id;
@@ -114,16 +116,12 @@ async function run() {
         res.send(result);
     });
 
-
-
-
     app.put("/myBids/accept/:id", async (req, res) => {
         const id = req.params.id;
         const query = { _id: new ObjectId(id) };
         const updatedJob = {
             $set: { status: "In progress" },
         };
-    
         try {
             const result = await bidsCollection.updateOne(query, updatedJob);
     
@@ -136,7 +134,6 @@ async function run() {
             res.status(500).send({ success: false, message: "Internal server error." });
         }
     });
-
 
     app.put('/myBids/complete/:id', async (req, res) => {
         const id = req.params.id;
@@ -159,73 +156,7 @@ async function run() {
         }
     });
     
-
-
-    // app.get("/myBids/accept/:id", async (req, res) => {
-    //     const id = req.params.id;
-    //     const query = { _id: new ObjectId(id) };
-    //     const result = await bidsCollection.findOne(query);
-    //     res.send(result);
-    // });
-    // app.get("/myBids/complete/:id", async (req, res) => {
-    //     const id = req.params.id;
-    //     const query = { _id: new ObjectId(id) };
-    //     const result = await bidsCollection.findOne(query);
-    //     res.send(result);
-    // });
-
-
-    // app.put("/myBids/complete/:id", async (req, res) => {
-    //     const id = req.params.id;
-    //     const query = { _id: new ObjectId(id) };
-    //     const updatedJob = {
-    //         $set: { status: "completed" },
-    //     };
-    //     const result = await bidsCollection.updateOne(query, updatedJob);
-    //     res.send(result);
-    // });
-
-    // app.put("/myBids/reject/:id", async (req, res) => {
-    //     const id = req.params.id;
-    //     const query = { _id: new ObjectId(id) };
-    //     const updatedJob = {
-    //         $set: { status: "rejected" },
-    //     };
-    //     const result = await bidsCollection.updateOne(query, updatedJob);
-    //     res.send(result);
-    // });
-    // app.put("/myBids/accept/:id", async (req, res) => {
-    //     const id = req.params.id;
-    //     const query = { _id: new ObjectId(id) };
-    //     const updatedJob = {
-    //         $set: { status: "in progress" },
-    //     };
-    //     const result = await bidsCollection.updateOne(query, updatedJob);
-    //     res.send(result);
-    // });
-
-
-    app.put('/jobs/update/:id', async (req, res) => {
-        const id = req.params.id;
-        const filter = { _id: new ObjectId(id) }
-        const options = { upsert: true };
-        const updatedJob = req.body;
-
-        const job = {
-            $set: {
-                jobTitle: updatedJob.jobTitle,
-                deadline: updatedJob.deadline,
-                maxPrice: updatedJob.maxPrice,
-                minPrice: updatedJob.minPrice,
-                description: updatedJob.description
-            }
-        }
-
-        const result = await jobCollection.updateOne(filter, job, options);
-        res.send(result);
-    })
-
-
+   
 
     app.delete('/jobs/:id', async (req, res) => {
         const id = req.params.id;
@@ -234,12 +165,10 @@ async function run() {
         res.send(result);
     })
 
-
-
-    await client.db("admin").command({ ping: 1 });
-    console.log(
-      "Pinged your deployment. You successfully connected to MongoDB!"
-    );
+    // await client.db("admin").command({ ping: 1 });
+    // console.log(
+    //   "Pinged your deployment. You successfully connected to MongoDB!"
+    // );
   } finally {
     // await client.close();
   }
